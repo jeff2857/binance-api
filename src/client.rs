@@ -1,5 +1,6 @@
 pub mod client {
 
+    use hyper_tls::HttpsConnector;
     use log::info;
 
     use hyper::{Client as HttpClient, client::HttpConnector, Method, Request, Response, Body};
@@ -13,18 +14,20 @@ pub mod client {
 
         base_url: &'static str,
 
-        http_client: HttpClient<HttpConnector>,
+        http_client: HttpClient<HttpsConnector<HttpConnector>>,
     }
 
     impl Client {
         pub fn new() -> Result<Self, String> {
             env_logger::init();
 
+            let http_client = HttpClient::builder().build::<_, hyper::Body>(HttpsConnector::new());
+
             let mut client = Client {
                 api_key: "".to_string(),
                 secret_key: "".to_string(),
                 base_url: &"https://api.binance.com",
-                http_client: HttpClient::new(),
+                http_client,
             };
 
             match client.get_api_key() {
@@ -94,6 +97,7 @@ pub mod client {
             let req = Request::builder()
                 .method(Method::GET)
                 .uri(format!("{}{}", self.base_url, url))
+                //.uri("https://www.baidu.com".to_string())
                 .body(Body::empty());
 
             if let Err(_) = req {
@@ -104,6 +108,7 @@ pub mod client {
 
             match req {
                 Some(q) => {
+                    info!("{:?}", &q);
                     let resp = self.http_client.request(q).await;
                     if let Ok(r) = resp {
                         Ok(r)

@@ -20,11 +20,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let client = client.unwrap();
 
-    info!("{:?}", client);
+    info!("{:?}", &client);
     
     let resp = client.get("/api/v3/ping").await?;
 
-    println!("resp: {}", resp.status());
+    println!("resp: {:?}", &resp.body());
 
     Ok(())
 }
