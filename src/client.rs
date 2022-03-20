@@ -1,11 +1,18 @@
 pub mod client {
 
+    use hyper_proxy::{Proxy, Intercept, ProxyConnector};
     use hyper_tls::HttpsConnector;
     use log::info;
 
-    use hyper::{Client as HttpClient, client::HttpConnector, Method, Request, Response, Body};
+    use hyper::{Client as HttpClient, client::HttpConnector, Method, Request, Response, Body, Uri};
 
-    use std::env;
+    use std::{env, str::FromStr};
+
+    #[derive(Debug)]
+    enum EClient {
+        Client(HttpClient<HttpsConnector<HttpConnector>>),
+        ProxyClient(HttpClient<ProxyConnector<HttpsConnector<HttpConnector>>>),
+    }
 
     #[derive(Debug)]
     pub struct Client {
@@ -14,7 +21,8 @@ pub mod client {
 
         base_url: &'static str,
 
-        http_client: HttpClient<HttpsConnector<HttpConnector>>,
+        http_client: EClient,
+        proxy: Option<ProxyConnector<HttpsConnector<HttpConnector>>>,
     }
 
     impl Client {
@@ -27,7 +35,31 @@ pub mod client {
                 api_key: "".to_string(),
                 secret_key: "".to_string(),
                 base_url: &"https://api.binance.com",
-                http_client,
+                http_client: EClient::Client(http_client),
+                proxy: None,
+            };
+
+            match client.get_api_key() {
+                Ok(_) => {return Ok(client);},
+                Err(e) => Err(e),
+            }
+        }
+
+        pub fn with_proxy(proxy_uri: String) -> Result<Self, String> {
+            let proxy = {
+                let proxy = Proxy::new(Intercept::All, proxy_uri.parse().unwrap());
+                let connector = HttpsConnector::new();
+                let proxy_connector = ProxyConnector::from_proxy(connector, proxy).unwrap();
+                proxy_connector
+            };
+
+            let http_client = HttpClient::builder().build::<_, hyper::Body>(proxy.clone());
+            let mut client = Client {
+                api_key: "".to_string(),
+                secret_key: "".to_string(),
+                base_url: &"https://api.binance.com",
+                http_client: EClient::ProxyClient(http_client),
+                proxy: Some(proxy),
             };
 
             match client.get_api_key() {
@@ -107,14 +139,34 @@ pub mod client {
             let req = req.ok();
 
             match req {
-                Some(q) => {
+                Some(mut q) => {
                     info!("{:?}", &q);
-                    let resp = self.http_client.request(q).await;
-                    if let Ok(r) = resp {
-                        Ok(r)
-                    } else {
-                        Err("Request Error".to_string())
+                    if let Some(proxy) = &self.proxy {
+                        if let Some(headers) = proxy.http_headers(&Uri::from_str(url).unwrap()) {
+                            q.headers_mut().extend(headers.clone().into_iter());
+                        }
                     }
+
+                    match &self.http_client {
+                        EClient::Client(client) => {
+                            let resp = client.request(q).await;
+                            if let Ok(r) = resp {
+                                Ok(r)
+                            } else {
+                                Err("Request Error".to_string())
+                            }
+                        },
+                        EClient::ProxyClient(client) => {
+                            let resp = client.request(q).await;
+                            if let Ok(r) = resp {
+                                Ok(r)
+                            } else {
+                                Err("Request Error".to_string())
+                            }
+
+                        }
+                    }
+
                 },
                 _ => Err("Body Error".to_string())
             }

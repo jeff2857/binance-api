@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     env::set_var("APIKEY", "MY_APIKEY");
     env::set_var("SECRETKEY", "MY_SECRETKEY");
 
-    let client = Client::new();
+    let client = Client::with_proxy("http://127.0.0.1:7890".to_string());
 
     if let Err(e) = &client {
         error!("{}", e);
@@ -24,7 +24,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     
     let resp = client.get("/api/v3/ping").await?;
 
-    println!("resp: {:?}", &resp.body());
+    let body_bytes = hyper::body::to_bytes(resp.into_body()).await?;
+    println!("resp: {:?}", body_bytes);
 
     Ok(())
 }
