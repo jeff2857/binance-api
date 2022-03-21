@@ -14,4 +14,28 @@ pub mod market {
         };
         Ok(body_bytes)
     }
+
+    pub async fn time(client: &Client) -> Result<Bytes, String> {
+        let uri = &"/api/v3/time";
+        let resp = client.get(uri).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            }
+        };
+        Ok(body_bytes)
+    }
+
+    pub async fn exchange_info(client: &Client) -> Result<Bytes, String> {
+        let uri = &"/api/v3/exchangeInfo";
+        let resp = client.get(uri).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            }
+        };
+        Ok(body_bytes)
+    }
 }
