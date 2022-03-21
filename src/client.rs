@@ -114,14 +114,6 @@ pub mod client {
             self.api_key = api_key;
             self.secret_key = secret_key;
         }
-
-        pub fn read_api_key_from_env() {
-
-        }
-
-        pub fn read_api_key_from_file() {
-
-        }
     }
 
     impl Client {
