@@ -24,8 +24,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("resp: {:?}", ping_body);
 
     let symbol = String::from("SOLUSDT");
-    let exchange_info_sol = market::exchange_info_symbol(&client, &symbol).await?;
-    println!("resp exchange_info_sol: {:?}", exchange_info_sol);
+    //let exchange_info_sol = market::exchange_info_symbol(&client, &symbol).await?;
+    //println!("resp exchange_info_sol: {:?}", exchange_info_sol);
+
+    let depth = market::depth(&client, &symbol, 2).await?;
+    println!("resp depth: {:?}", depth);
 
     Ok(())
 }

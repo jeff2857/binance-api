@@ -71,4 +71,26 @@ pub mod market {
         };
         Ok(body_bytes)
     }
+
+    pub async fn depth(client: &Client, symbol: &String, limit: u32) -> Result<Bytes, String> {
+        let limit_options: [u32; 8] = [5, 10, 20, 50, 100, 500, 1000, 5000];
+        if let None = limit_options.iter().find(|&&x| x == limit) {
+            return Err(format!("limit must be one of {:?}", &limit_options));
+        }
+
+        let uri = &"/api/v3/depth";
+
+        let param = vec![
+            RequestParam{key: String::from("symbol"), value: String::from(symbol)},
+            RequestParam{key: String::from("limit"), value: limit.to_string()},
+        ];
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+        Ok(body_bytes)
+    }
 }
