@@ -171,4 +171,102 @@ pub mod market {
         };
         Ok(body_bytes)
     }
+
+    pub async fn klines(client: &Client, symbol: &String, interval: &String, start_time: Option<u64>, end_time: Option<u64>, limit: Option<u32>) -> Result<Bytes, String> {
+        let uri = &"/api/v3/klines";
+
+        let mut param = vec![
+            RequestParam{key: String::from("symbol"), value: String::from(symbol)},
+            RequestParam{key: String::from("interval"), value: String::from(interval)},
+        ];
+        if let Some(start_time) = start_time {
+            param.push(RequestParam{key: String::from("startTime"), value: start_time.to_string()});
+        }
+        if let Some(end_time) = end_time {
+            param.push(RequestParam{key: String::from("endTime"), value: end_time.to_string()});
+        }
+        if let Some(mut limit) = limit {
+            if limit > 1000 {
+                limit = 1000;
+            }
+            param.push(RequestParam{key: String::from("limit"), value: limit.to_string()});
+        }
+
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+        Ok(body_bytes)
+    }
+
+    pub async fn avg_price(client: &Client, symbol: &String) -> Result<Bytes, String> {
+        let uri = &"/api/v3/avgPrice";
+
+        let param = vec![RequestParam{key: String::from("symbol"), value: String::from(symbol)}];
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+        Ok(body_bytes)
+    }
+
+    pub async fn ticker_24hr(client: &Client, symbol: &Option<String>) -> Result<Bytes, String> {
+        let uri = &"/api/v3/ticker/24hr";
+
+        let mut param = vec![];
+        if let Some(symbol) = symbol {
+            param.push(RequestParam{key: String::from("symbol"), value: String::from(symbol)});
+        }
+
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+        Ok(body_bytes)
+    }
+
+    pub async fn ticker_price(client: &Client, symbol: &Option<String>) -> Result<Bytes, String> {
+        let uri = &"/api/v3/ticker/price";
+
+        let mut param = vec![];
+        if let Some(symbol) = symbol {
+            param.push(RequestParam{key: String::from("symbol"), value: String::from(symbol)});
+        }
+
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+        Ok(body_bytes)
+    }
+
+    pub async fn ticker_book(client: &Client, symbol: &Option<String>) -> Result<Bytes, String> {
+        let uri = &"/api/v3/ticker/bookTicker";
+
+        let mut param = vec![];
+        if let Some(symbol) = symbol {
+            param.push(RequestParam{key: String::from("symbol"), value: String::from(symbol)});
+        }
+
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+        Ok(body_bytes)
+    }
 }
