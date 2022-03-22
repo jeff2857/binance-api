@@ -9,6 +9,12 @@ pub mod client {
     use std::{env, str::FromStr};
 
     #[derive(Debug)]
+    pub struct RequestParam {
+        pub key: String,
+        pub value: String,
+    }
+
+    #[derive(Debug)]
     enum EClient {
         Client(HttpClient<HttpsConnector<HttpConnector>>),
         ProxyClient(HttpClient<ProxyConnector<HttpsConnector<HttpConnector>>>),
@@ -117,50 +123,88 @@ pub mod client {
     }
 
     impl Client {
-        pub async fn get(&self, url: &str) -> Result<Response<Body>, String> {
-            let req = Request::builder()
+        pub async fn get(&self, uri: &str) -> Result<Response<Body>, String> {
+            let mut req = match Request::builder()
                 .method(Method::GET)
-                .uri(format!("{}{}", self.base_url, url))
-                //.uri("https://www.baidu.com".to_string())
-                .body(Body::empty());
+                .uri(format!("{}{}", self.base_url, uri))
+                .body(Body::empty())
+            {
+                Ok(req) => req,
+                Err(err) => {
+                    return Err(err.to_string());
+                },
+            };
 
-            if let Err(_) = req {
-                return Err("Body Error".to_string());
+            info!("req: {:?}", &req);
+            if let Some(proxy) = &self.proxy {
+                if let Some(headers) = proxy.http_headers(&Uri::from_str(uri).unwrap()) {
+                    req.headers_mut().extend(headers.clone().into_iter());
+                }
             }
 
-            let req = req.ok();
-
-            match req {
-                Some(mut q) => {
-                    info!("{:?}", &q);
-                    if let Some(proxy) = &self.proxy {
-                        if let Some(headers) = proxy.http_headers(&Uri::from_str(url).unwrap()) {
-                            q.headers_mut().extend(headers.clone().into_iter());
-                        }
+            match &self.http_client {
+                EClient::Client(client) => {
+                    let resp = client.request(req).await;
+                    if let Ok(r) = resp {
+                        Ok(r)
+                    } else {
+                        Err("Request Error".to_string())
                     }
-
-                    match &self.http_client {
-                        EClient::Client(client) => {
-                            let resp = client.request(q).await;
-                            if let Ok(r) = resp {
-                                Ok(r)
-                            } else {
-                                Err("Request Error".to_string())
-                            }
-                        },
-                        EClient::ProxyClient(client) => {
-                            let resp = client.request(q).await;
-                            if let Ok(r) = resp {
-                                Ok(r)
-                            } else {
-                                Err("Request Error".to_string())
-                            }
-
-                        }
-                    }
-
                 },
-                _ => Err("Body Error".to_string())
+                EClient::ProxyClient(client) => {
+                    let resp = client.request(req).await;
+                    if let Ok(r) = resp {
+                        Ok(r)
+                    } else {
+                        Err("Request Error".to_string())
+                    }
+                }
+            }
+        }
+
+        pub async fn get_with_param(&self, uri: &str, param: &Vec<RequestParam>) -> Result<Response<Body>, String> {
+            let mut param_str = String::new();
+            for p in param {
+                param_str.push_str(&format!("&{}={}", &p.key, &p.value));
+            }
+
+            param_str.remove(0);
+
+            let mut req = match Request::builder()
+                .method(Method::GET)
+                .uri(&format!("{}{}?{}", self.base_url, uri, param_str))
+                .body(Body::empty())
+            {
+                Ok(req) => req,
+                Err(err) => {
+                    return Err(err.to_string());
+                }
+            };
+
+            info!("req: {:?}", &req);
+            if let Some(proxy) = &self.proxy {
+                if let Some(headers) = proxy.http_headers(&Uri::from_str(uri).unwrap()) {
+                    req.headers_mut().extend(headers.clone().into_iter());
+                }
+            }
+
+            match &self.http_client {
+                EClient::Client(client) => {
+                    let resp = client.request(req).await;
+                    if let Ok(r) = resp {
+                        Ok(r)
+                    } else {
+                        Err("Request Error".to_string())
+                    }
+                },
+                EClient::ProxyClient(client) => {
+                    let resp = client.request(req).await;
+                    if let Ok(r) = resp {
+                        Ok(r)
+                    } else {
+                        Err("Request Error".to_string())
+                    }
+                }
             }
         }
     }
