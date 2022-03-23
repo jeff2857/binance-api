@@ -32,6 +32,10 @@ pub mod client {
     }
 
     impl Client {
+        pub fn get_secret_key(&self) -> &String {
+            &self.secret_key
+        }
+
         pub fn new() -> Result<Self, String> {
             env_logger::init();
 
@@ -127,6 +131,7 @@ pub mod client {
             let mut req = match Request::builder()
                 .method(Method::GET)
                 .uri(format!("{}{}", self.base_url, uri))
+                .header("X-MBX-APIKEY", &self.api_key)
                 .body(Body::empty())
             {
                 Ok(req) => req,
@@ -170,9 +175,12 @@ pub mod client {
 
             param_str.remove(0);
 
+            println!("request param: {}", &param_str);
+
             let mut req = match Request::builder()
                 .method(Method::GET)
                 .uri(&format!("{}{}?{}", self.base_url, uri, param_str))
+                .header("X-MBX-APIKEY", &self.api_key)
                 .body(Body::empty())
             {
                 Ok(req) => req,
