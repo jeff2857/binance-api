@@ -1,5 +1,5 @@
 pub mod wallet {
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::{time::{SystemTime, UNIX_EPOCH}, str::FromStr};
 
     use hmac::{Hmac, Mac};
     use hyper::body::Bytes;
@@ -157,6 +157,61 @@ pub mod wallet {
 
         let timestamp = get_timestamp();
         param.push(RequestParam{key: String::from("timestamp"), value: timestamp.to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.post(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
+
+    pub async fn capital_withdraw(
+        client: &Client,
+        coin: &str,
+        amount: f64,
+        address: &str,
+        withdraw_order_id: &Option<&str>,
+        network: &Option<&str>,
+        address_tag: &Option<&str>,
+        transaction_fee_flag: &Option<bool>,
+        name: &Option<&str>,
+        wallet_type: &Option<u8>
+    ) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/capital/withdraw/apply";
+
+        let mut param = vec![
+            RequestParam{key: String::from("coin"), value: String::from(coin)},
+            RequestParam{key: String::from("address"), value: String::from(address)},
+            RequestParam{key: String::from("amount"), value: amount.to_string()},
+        ];
+
+        if let Some(withdraw_order_id) = withdraw_order_id {
+            param.push(RequestParam{key: String::from("withdrawOrderId"), value: String::from(*withdraw_order_id)});
+        }
+        if let Some(network) = network {
+            param.push(RequestParam{key: String::from("network"), value: String::from(*network)});
+        }
+        if let Some(address_tag) = address_tag {
+            param.push(RequestParam{key: String::from("addressTag"), value: String::from(*address_tag)});
+        }
+        if let Some(transaction_fee_flag) = transaction_fee_flag {
+            param.push(RequestParam{key: String::from("transactionFeeFlag"), value: transaction_fee_flag.to_string()});
+        }
+        if let Some(name) = name {
+            param.push(RequestParam{key: String::from("name"), value: String::from(*name)});
+        }
+        if let Some(wallet_type) = wallet_type {
+            param.push(RequestParam{key: String::from("walletType"), value: wallet_type.to_string()});
+        }
+        param.push(RequestParam{key: String::from("signature"), value: get_timestamp().to_string()});
 
         let param_str = param2string(&param);
         let signature = get_signature(&param_str, client.get_secret_key());
