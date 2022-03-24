@@ -215,5 +215,55 @@ pub mod client {
                 }
             }
         }
+
+        pub async fn post(&self, uri: &str, param: &Vec<RequestParam>) -> Result<Response<Body>, String> {
+            let mut param_str = String::new();
+            for p in param {
+                param_str.push_str(&format!("&{}={}", &p.key, &p.value));
+            }
+
+            param_str.remove(0);
+
+            println!("request param: {}", &param_str);
+
+            let mut req = match Request::builder()
+                .method(Method::POST)
+                .uri(format!("{}{}", self.base_url, uri))
+                .header("X-MBX-APIKEY", &self.api_key)
+                .body(Body::from(param_str))
+            {
+                Ok(req) => req,
+                Err(err) => {
+                    return Err(err.to_string());
+                },
+            };
+
+            info!("req: {:?}", &req);
+            if let Some(proxy) = &self.proxy {
+                if let Some(headers) = proxy.http_headers(&Uri::from_str(uri).unwrap()) {
+                    req.headers_mut().extend(headers.clone().into_iter());
+                }
+            }
+
+            match &self.http_client {
+                EClient::Client(client) => {
+                    let resp = client.request(req).await;
+                    if let Ok(r) = resp {
+                        Ok(r)
+                    } else {
+                        Err("Request Error".to_string())
+                    }
+                },
+                EClient::ProxyClient(client) => {
+                    let resp = client.request(req).await;
+                    if let Ok(r) = resp {
+                        Ok(r)
+                    } else {
+                        Err("Request Error".to_string())
+                    }
+                }
+            }
+
+        }
     }
 }

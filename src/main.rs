@@ -12,7 +12,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // test APIKEY and SECRETKEY
     //env::set_var("APIKEY", "your api key");
     //env::set_var("SECRETKEY", "you secret key");
-    let proxy_uri = String::from("http://172.21.48.1:7890");
+    //let proxy_uri = String::from("http://172.21.48.1:7890");
+    let proxy_uri = String::from("http://127.0.0.1:7890");
 
     let client = match Client::with_proxy(proxy_uri) {
         Ok(client) => client,
@@ -36,8 +37,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     //let resp_capital_all = wallet::capital_all(&client).await?;
     //println!("resp_capital_all: {:?}", resp_capital_all);
 
-    let account_snapshot = wallet::account_snapshot(&client, &"SPOT".into(), None, None, None).await?;
-    println!("resp account_snapshot: {:?}", account_snapshot);
+    //let account_snapshot = wallet::account_snapshot(&client, &"SPOT".into(), None, None, None).await?;
+    //println!("resp account_snapshot: {:?}", account_snapshot);
+
+    let asset_dust_btc = wallet::asset_dust_btc(&client).await?;
+    println!("asset_dust_btc: {:?}", asset_dust_btc);
 
     Ok(())
 }
