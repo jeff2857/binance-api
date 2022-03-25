@@ -376,4 +376,54 @@ pub mod wallet {
 
         Ok(body_bytes)
     }
+
+    pub async fn account_api_trading_status(client: &Client) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/account/apiTradingStatus";
+
+        let mut param = vec![
+            RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()},
+        ];
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
+
+    pub async fn asset_dribblet(client: &Client, start_time: Option<u64>, end_time: Option<u64>) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/asset/dribblet";
+
+        let mut param = vec![];
+
+        if let Some(start_time) = start_time {
+            param.push(RequestParam{key: String::from("startTime"), value: start_time.to_string()});
+        }
+        if let Some(end_time) = end_time {
+            param.push(RequestParam{key: String::from("endTime"), value: end_time.to_string()});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
 }
