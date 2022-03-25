@@ -516,4 +516,29 @@ pub mod wallet {
 
         Ok(body_bytes)
     }
+
+    pub async fn asset_trade_fee(client: &Client, symbol: &Option<&str>) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/asset/tradeFee";
+
+        let mut param = vec![];
+
+        if let Some(symbol) = symbol {
+            param.push(RequestParam{key: String::from("symbol"), value: String::from(*symbol)});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
 }
