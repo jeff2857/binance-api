@@ -1,8 +1,8 @@
 pub mod wallet {
-    use std::{time::{SystemTime, UNIX_EPOCH}, str::FromStr};
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     use hmac::{Hmac, Mac};
-    use hyper::body::Bytes;
+    use hyper::{body::Bytes, Response};
     use sha2::Sha256;
 
     use crate::client::client::{Client, RequestParam};
@@ -211,7 +211,107 @@ pub mod wallet {
         if let Some(wallet_type) = wallet_type {
             param.push(RequestParam{key: String::from("walletType"), value: wallet_type.to_string()});
         }
-        param.push(RequestParam{key: String::from("signature"), value: get_timestamp().to_string()});
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.post(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
+
+    pub async fn capital_deposit_hisrec(
+        client: &Client,
+        coin: &Option<&str>,
+        status: Option<u32>,
+        start_time: Option<u64>,
+        end_time: Option<u64>,
+        offset: Option<i32>,
+        limit: Option<u32>,
+    ) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/capital/deposit/hisrec";
+
+        let mut param = vec![];
+
+        if let Some(coin) = coin {
+            param.push(RequestParam{key: String::from("coin"), value: String::from(*coin)});
+        }
+        if let Some(status) = status {
+            param.push(RequestParam{key: String::from("status"), value: status.to_string()});
+        }
+        if let Some(start_time) = start_time {
+            param.push(RequestParam{key: String::from("startTime"), value: start_time.to_string()});
+        }
+        if let Some(end_time) = end_time {
+            param.push(RequestParam{key: String::from("endTime"), value: end_time.to_string()});
+        }
+        if let Some(offset) = offset {
+            param.push(RequestParam{key: String::from("offset"), value: offset.to_string()});
+        }
+        if let Some(limit) = limit {
+            param.push(RequestParam{key: String::from("limit"), value: limit.to_string()});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.post(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
+
+    pub async fn capital_withdraw_history(
+        client: &Client,
+        coin: &Option<&str>,
+        withdraw_order_id: &Option<&str>,
+        status: Option<u32>,
+        offset: Option<i32>,
+        limit: Option<u32>,
+        start_time: Option<u64>,
+        end_time: Option<u64>
+    ) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/capital/withdraw/history";
+
+        let mut param = vec![];
+
+        if let Some(coin) = coin {
+            param.push(RequestParam{key: String::from("coin"), value: String::from(*coin)});
+        }
+        if let Some(withdraw_order_id) = withdraw_order_id {
+            param.push(RequestParam{key: String::from("withdrawOrderId"), value: String::from(*withdraw_order_id)});
+        }
+        if let Some(status) = status {
+            param.push(RequestParam{key: String::from("status"), value: status.to_string()});
+        }
+        if let Some(start_time) = start_time {
+            param.push(RequestParam{key: String::from("startTime"), value: start_time.to_string()});
+        }
+        if let Some(end_time) = end_time {
+            param.push(RequestParam{key: String::from("endTime"), value: end_time.to_string()});
+        }
+        if let Some(offset) = offset {
+            param.push(RequestParam{key: String::from("offset"), value: offset.to_string()});
+        }
+        if let Some(limit) = limit {
+            param.push(RequestParam{key: String::from("limit"), value: limit.to_string()});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
 
         let param_str = param2string(&param);
         let signature = get_signature(&param_str, client.get_secret_key());
