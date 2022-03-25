@@ -457,4 +457,63 @@ pub mod wallet {
 
         Ok(body_bytes)
     }
+
+    pub async fn asset_dividend(client: &Client, asset: &Option<&str>, start_time: Option<u64>, end_time: Option<u64>, limit: Option<u32>) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/asset/assetDividend";
+
+        let mut param = vec![];
+
+        if let Some(asset) = asset {
+            param.push(RequestParam{key: String::from("asset"), value: String::from(*asset)});
+        }
+        if let Some(start_time) = start_time {
+            param.push(RequestParam{key: String::from("startTime"), value: start_time.to_string()});
+        }
+        if let Some(end_time) = end_time {
+            param.push(RequestParam{key: String::from("endTime"), value: end_time.to_string()});
+        }
+        if let Some(limit) = limit {
+            param.push(RequestParam{key: String::from("limit"), value: limit.to_string()});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
+
+    pub async fn asset_detail(client: &Client, asset: &Option<&str>) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/asset/assetDetail";
+
+        let mut param = vec![];
+
+        if let Some(asset) = asset {
+            param.push(RequestParam{key: String::from("asset"), value: String::from(*asset)});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.get_with_param(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
 }
