@@ -265,7 +265,7 @@ pub mod wallet {
         let signature = get_signature(&param_str, client.get_secret_key());
         param.push(RequestParam{key: String::from("signature"), value: signature});
     
-        let resp = client.post(uri, &param).await?;
+        let resp = client.get_with_param(uri, &param).await?;
         let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
             Ok(bytes) => bytes,
             Err(err) => {
@@ -317,7 +317,7 @@ pub mod wallet {
         let signature = get_signature(&param_str, client.get_secret_key());
         param.push(RequestParam{key: String::from("signature"), value: signature});
     
-        let resp = client.post(uri, &param).await?;
+        let resp = client.get_with_param(uri, &param).await?;
         let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
             Ok(bytes) => bytes,
             Err(err) => {
