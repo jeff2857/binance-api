@@ -574,7 +574,7 @@ pub mod wallet {
         Ok(body_bytes)
     }
 
-    pub async fn asset_transfer(
+    pub async fn make_asset_transfer(
         client: &Client,
         transfer_type: EAssetTransferType,
         asset: &str,
@@ -603,6 +603,57 @@ pub mod wallet {
         param.push(RequestParam{key: String::from("signature"), value: signature});
     
         let resp = client.post(uri, &param).await?;
+        let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                return Err(err.to_string());
+            },
+        };
+
+        Ok(body_bytes)
+    }
+
+    pub async fn get_asset_transfer(
+        client: &Client,
+        transfer_type: EAssetTransferType,
+        start_time: Option<u64>,
+        end_time: Option<u64>,
+        current: Option<i32>,
+        size: Option<u32>,
+        from_symbol: &Option<&str>,
+        to_symbol: &Option<&str>
+    ) -> Result<Bytes, String> {
+        let uri = &"/sapi/v1/asset/transfer";
+
+        let mut param = vec![
+            RequestParam{key: String::from("type"), value: transfer_type.to_string()},
+        ];
+
+        if let Some(start_time) = start_time {
+            param.push(RequestParam{key: String::from("startTime"), value: start_time.to_string()});
+        }
+        if let Some(end_time) = end_time {
+            param.push(RequestParam{key: String::from("endTime"), value: end_time.to_string()});
+        }
+        if let Some(current) = current {
+            param.push(RequestParam{key: String::from("current"), value: current.to_string()});
+        }
+        if let Some(size) = size {
+            param.push(RequestParam{key: String::from("size"), value: size.to_string()});
+        }
+        if let Some(from_symbol) = from_symbol {
+            param.push(RequestParam{key: String::from("fromSymbol"), value: String::from(*from_symbol)});
+        }
+        if let Some(to_symbol) = to_symbol {
+            param.push(RequestParam{key: String::from("toSymbol"), value: String::from(*to_symbol)});
+        }
+        param.push(RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()});
+
+        let param_str = param2string(&param);
+        let signature = get_signature(&param_str, client.get_secret_key());
+        param.push(RequestParam{key: String::from("signature"), value: signature});
+    
+        let resp = client.get_with_param(uri, &param).await?;
         let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
             Ok(bytes) => bytes,
             Err(err) => {
