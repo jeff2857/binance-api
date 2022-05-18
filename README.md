@@ -1,4 +1,4 @@
-# binance-sdk-rs
+# binance-api
 
 This project focuses on encapsulating Binance API so that making it easier to use in your Rust project.
 
