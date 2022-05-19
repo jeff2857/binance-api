@@ -3,7 +3,7 @@
 use std::env;
 
 use log::{error, info};
-use binance_sdk_rs::{client::client::Client, market::market, wallet::wallet};
+use binance_sdk_rs::{client::client::Client, market::market, wallet::wallet, ws};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -24,10 +24,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
     
     info!("market ping");
-    let ping_body = market::ping(&client).await?;
-    println!("resp: {:?}", ping_body);
+    //let ping_body = market::ping(&client).await?;
+    //println!("resp: {:?}", ping_body);
 
-    let symbol = String::from("SOLUSDT");
+    //let symbol = String::from("SOLUSDT");
     //let exchange_info_sol = market::exchange_info_symbol(&client, &symbol).await?;
     //println!("resp exchange_info_sol: {:?}", exchange_info_sol);
 
@@ -40,8 +40,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     //let account_snapshot = wallet::account_snapshot(&client, &"SPOT".into(), None, None, None).await?;
     //println!("resp account_snapshot: {:?}", account_snapshot);
 
-    let asset_dust_btc = wallet::asset_dust_btc(&client).await?;
-    println!("asset_dust_btc: {:?}", asset_dust_btc);
+    //let asset_dust_btc = wallet::asset_dust_btc(&client).await?;
+    //println!("asset_dust_btc: {:?}", asset_dust_btc);
+
+    ws::client::test_connect();
 
     Ok(())
 }
