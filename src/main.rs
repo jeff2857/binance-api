@@ -3,7 +3,7 @@
 use std::env;
 
 use log::{error, info};
-use binance_sdk_rs::{client::client::Client, market::market, wallet::wallet, ws};
+use binance_sdk_rs::{http::client::Client, http::market, http::wallet, ws};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
