@@ -34,6 +34,27 @@ pub enum EAssetTransferType {
     CMFUTURE_FUNDING,
 }
 
+const URL_SYSTEM_STATUS: &str = "/sapi/v1/system/status";
+const URL_CAPITAL_ALL: &str = "/sapi/v1/capital/config/getall";
+const URL_ACCOUNT_SNAPSHOT: &str = "/sapi/v1/accountSnapshot";
+const URL_ASSET_DUST_BTC: &str = "/sapi/v1/asset/dust-btc";
+const URL_ACCOUNT_DISABLE_FAST_WITHDRAW_SWITCH: &str = "/sapi/v1/account/disableFastWithdrawSwitch";
+const URL_ACCOUNT_ENABLE_FAST_WITHDRAW_SWITCH: &str = "/sapi/v1/account/enableFastWithdrawSwitch";
+const URL_CAPITAL_WITHDRAW: &str = "/sapi/v1/capital/withdraw/apply";
+const URL_CAPITAL_DEPOSIT_HISREC: &str = "/sapi/v1/capital/deposit/hisrec";
+const URL_CAPITAL_WITHDRAW_HISTORY: &str = "/sapi/v1/capital/withdraw/history";
+const URL_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/address";
+const URL_ACCOUNT_STATUS: &str = "/sapi/v1/account/status";
+const URL_ACCOUNT_API_TRADING_STATUS: &str = "/sapi/v1/account/apiTradingStatus";
+const URL_ASSET_DRIBBLET: &str = "/sapi/v1/asset/dribblet";
+const URL_ASSET_DUST: &str = "/sapi/v1/asset/dust";
+const URL_ASSET_DIVIDEND: &str = "/sapi/v1/asset/assetDividend";
+const URL_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
+const URL_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
+const URL_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
+const URL_GET_FUNDING_ASSET: &str = "/sapi/v1/asset/get-funding-asset";
+const URL_ACCOUNT_API_RESTRICTIONS: &str = "/sapi/v1/account/apiRestrictions";
+
 impl fmt::Display for EAssetTransferType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
@@ -64,9 +85,7 @@ fn param2string(param: &Vec<RequestParam>) -> String {
 }
 
 pub async fn system_status(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/system/status";
-
-    let resp = client.get(uri).await?;
+    let resp = client.get(URL_SYSTEM_STATUS).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -78,8 +97,6 @@ pub async fn system_status(client: &Client) -> Result<Bytes, String> {
 }
 
 pub async fn capital_all(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/capital/config/getall";
-
     let timestamp = get_timestamp();
     let mut param = vec![
         RequestParam{key: String::from("timestamp"), value: timestamp.to_string()},
@@ -90,7 +107,7 @@ pub async fn capital_all(client: &Client) -> Result<Bytes, String> {
     println!("signature: {}", &signature);
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_CAPITAL_ALL, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -102,8 +119,6 @@ pub async fn capital_all(client: &Client) -> Result<Bytes, String> {
 }
 
 pub async fn account_snapshot(client: &Client, account_type: &String, start_time: Option<u64>, end_time: Option<u64>, limit: Option<u32>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/accountSnapshot";
-
     let mut param = vec![
         RequestParam{key: String::from("type"), value: String::from(account_type)},
     ];
@@ -124,7 +139,7 @@ pub async fn account_snapshot(client: &Client, account_type: &String, start_time
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ACCOUNT_SNAPSHOT, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -136,8 +151,6 @@ pub async fn account_snapshot(client: &Client, account_type: &String, start_time
 }
 
 pub async fn asset_dust_btc(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/dust-btc";
-
     let mut param = vec![];
 
     let timestamp = get_timestamp();
@@ -147,7 +160,7 @@ pub async fn asset_dust_btc(client: &Client) -> Result<Bytes, String> {
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_ASSET_DUST_BTC, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -159,8 +172,6 @@ pub async fn asset_dust_btc(client: &Client) -> Result<Bytes, String> {
 }
 
 pub async fn disable_fast_withdraw_switch(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/account/disableFastWithdrawSwitch";
-
     let mut param = vec![];
 
     let timestamp = get_timestamp();
@@ -170,7 +181,7 @@ pub async fn disable_fast_withdraw_switch(client: &Client) -> Result<Bytes, Stri
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_ACCOUNT_DISABLE_FAST_WITHDRAW_SWITCH, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -182,8 +193,6 @@ pub async fn disable_fast_withdraw_switch(client: &Client) -> Result<Bytes, Stri
 }
 
 pub async fn enable_fast_withdraw_switch(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/account/enableFastWithdrawSwitch";
-
     let mut param = vec![];
 
     let timestamp = get_timestamp();
@@ -193,7 +202,7 @@ pub async fn enable_fast_withdraw_switch(client: &Client) -> Result<Bytes, Strin
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_ACCOUNT_ENABLE_FAST_WITHDRAW_SWITCH, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -216,8 +225,6 @@ pub async fn capital_withdraw(
     name: &Option<&str>,
     wallet_type: &Option<u8>
 ) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/capital/withdraw/apply";
-
     let mut param = vec![
         RequestParam{key: String::from("coin"), value: String::from(coin)},
         RequestParam{key: String::from("address"), value: String::from(address)},
@@ -248,7 +255,7 @@ pub async fn capital_withdraw(
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_CAPITAL_WITHDRAW, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -268,8 +275,6 @@ pub async fn capital_deposit_hisrec(
     offset: Option<i32>,
     limit: Option<u32>,
 ) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/capital/deposit/hisrec";
-
     let mut param = vec![];
 
     if let Some(coin) = coin {
@@ -296,7 +301,7 @@ pub async fn capital_deposit_hisrec(
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_CAPITAL_DEPOSIT_HISREC, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -317,8 +322,6 @@ pub async fn capital_withdraw_history(
     start_time: Option<u64>,
     end_time: Option<u64>
 ) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/capital/withdraw/history";
-
     let mut param = vec![];
 
     if let Some(coin) = coin {
@@ -348,7 +351,7 @@ pub async fn capital_withdraw_history(
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_CAPITAL_WITHDRAW_HISTORY, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -360,8 +363,6 @@ pub async fn capital_withdraw_history(
 }
 
 pub async fn capital_deposit_address(client: &Client, coin: &str, network: &Option<&str>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/capital/deposit/address";
-
     let mut param = vec![
         RequestParam{key: String::from("coin"), value: String::from(coin)},
     ];
@@ -375,7 +376,7 @@ pub async fn capital_deposit_address(client: &Client, coin: &str, network: &Opti
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_CAPITAL_DEPOSIT_ADDRESS, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -387,8 +388,6 @@ pub async fn capital_deposit_address(client: &Client, coin: &str, network: &Opti
 }
 
 pub async fn account_status(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/account/status";
-
     let mut param = vec![
         RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()},
     ];
@@ -397,7 +396,7 @@ pub async fn account_status(client: &Client) -> Result<Bytes, String> {
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ACCOUNT_STATUS, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -409,8 +408,6 @@ pub async fn account_status(client: &Client) -> Result<Bytes, String> {
 }
 
 pub async fn account_api_trading_status(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/account/apiTradingStatus";
-
     let mut param = vec![
         RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()},
     ];
@@ -419,7 +416,7 @@ pub async fn account_api_trading_status(client: &Client) -> Result<Bytes, String
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ACCOUNT_API_TRADING_STATUS, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -431,8 +428,6 @@ pub async fn account_api_trading_status(client: &Client) -> Result<Bytes, String
 }
 
 pub async fn asset_dribblet(client: &Client, start_time: Option<u64>, end_time: Option<u64>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/dribblet";
-
     let mut param = vec![];
 
     if let Some(start_time) = start_time {
@@ -447,7 +442,7 @@ pub async fn asset_dribblet(client: &Client, start_time: Option<u64>, end_time: 
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ASSET_DRIBBLET, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -459,8 +454,6 @@ pub async fn asset_dribblet(client: &Client, start_time: Option<u64>, end_time: 
 }
 
 pub async fn asset_dust(client: &Client, asset: &Vec<&str>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/dust";
-
     let mut asset_str = String::new();
     for a in asset {
         asset_str.push_str(format!("&asset={}", a).as_str());
@@ -478,7 +471,7 @@ pub async fn asset_dust(client: &Client, asset: &Vec<&str>) -> Result<Bytes, Str
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_ASSET_DUST, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -490,8 +483,6 @@ pub async fn asset_dust(client: &Client, asset: &Vec<&str>) -> Result<Bytes, Str
 }
 
 pub async fn asset_dividend(client: &Client, asset: &Option<&str>, start_time: Option<u64>, end_time: Option<u64>, limit: Option<u32>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/assetDividend";
-
     let mut param = vec![];
 
     if let Some(asset) = asset {
@@ -512,7 +503,7 @@ pub async fn asset_dividend(client: &Client, asset: &Option<&str>, start_time: O
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ASSET_DIVIDEND, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -524,8 +515,6 @@ pub async fn asset_dividend(client: &Client, asset: &Option<&str>, start_time: O
 }
 
 pub async fn asset_detail(client: &Client, asset: &Option<&str>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/assetDetail";
-
     let mut param = vec![];
 
     if let Some(asset) = asset {
@@ -537,7 +526,7 @@ pub async fn asset_detail(client: &Client, asset: &Option<&str>) -> Result<Bytes
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ASSET_DETAIL, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -549,8 +538,6 @@ pub async fn asset_detail(client: &Client, asset: &Option<&str>) -> Result<Bytes
 }
 
 pub async fn asset_trade_fee(client: &Client, symbol: &Option<&str>) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/tradeFee";
-
     let mut param = vec![];
 
     if let Some(symbol) = symbol {
@@ -562,7 +549,7 @@ pub async fn asset_trade_fee(client: &Client, symbol: &Option<&str>) -> Result<B
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ASSET_TRADE_FEE, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -581,8 +568,6 @@ pub async fn make_asset_transfer(
     from_symbol: &Option<&str>,
     to_symbol: &Option<&str>
 ) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/transfer";
-
     let mut param = vec![
         RequestParam{key: String::from("type"), value: transfer_type.to_string()},
         RequestParam{key: String::from("asset"), value: String::from(asset)},
@@ -601,7 +586,7 @@ pub async fn make_asset_transfer(
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_ASSET_TRANSFER, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -622,8 +607,6 @@ pub async fn get_asset_transfer(
     from_symbol: &Option<&str>,
     to_symbol: &Option<&str>
 ) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/transfer";
-
     let mut param = vec![
         RequestParam{key: String::from("type"), value: transfer_type.to_string()},
     ];
@@ -652,7 +635,7 @@ pub async fn get_asset_transfer(
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ASSET_TRANSFER, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -668,8 +651,6 @@ pub async fn get_funding_asset(
     asset: &Option<&str>,
     need_btc_valuation: &Option<&str>,
 ) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/asset/get-funding-asset";
-
     let mut param = vec![];
 
     if let Some(asset) = asset {
@@ -684,7 +665,7 @@ pub async fn get_funding_asset(
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.post(uri, &param).await?;
+    let resp = client.post(URL_GET_FUNDING_ASSET, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -696,8 +677,6 @@ pub async fn get_funding_asset(
 }
 
 pub async fn account_api_restrictions(client: &Client) -> Result<Bytes, String> {
-    let uri = &"/sapi/v1/account/apiRestrictions";
-
     let mut param = vec![
         RequestParam{key: String::from("timestamp"), value: get_timestamp().to_string()},
     ];
@@ -706,7 +685,7 @@ pub async fn account_api_restrictions(client: &Client) -> Result<Bytes, String> 
     let signature = get_signature(&param_str, client.get_secret_key());
     param.push(RequestParam{key: String::from("signature"), value: signature});
 
-    let resp = client.get_with_param(uri, &param).await?;
+    let resp = client.get_with_param(URL_ACCOUNT_API_RESTRICTIONS, &param).await?;
     let body_bytes = match hyper::body::to_bytes(resp.into_body()).await {
         Ok(bytes) => bytes,
         Err(err) => {
